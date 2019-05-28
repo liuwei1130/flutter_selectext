@@ -1,7 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/cupertino.dart' show CupertinoTheme, CupertinoColors;
-import 'package:flutter/material.dart'
-    show Theme, ThemeData, Feedback, debugCheckHasMaterial;
+import 'package:flutter/material.dart' show Theme, ThemeData, Feedback, debugCheckHasMaterial;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_selectext/src/text_selection_controls/cupertino_copy_text_selection_controls.dart';
 import 'package:flutter_selectext/src/input_less_focus_node.dart';
@@ -65,8 +64,7 @@ class SelectableText extends StatelessWidget {
   final GlobalKey<SelectableTextEditableTextState> _editableTextKey =
       GlobalKey<SelectableTextEditableTextState>();
 
-  SelectableTextRender get _renderEditable =>
-      _editableTextKey.currentState.renderEditable;
+  SelectableTextRender get _renderEditable => _editableTextKey.currentState.renderEditable;
 
   TextSelection get selection => _renderEditable.selection;
 
@@ -86,8 +84,7 @@ class SelectableText extends StatelessWidget {
     }
   }
 
-  void _handleSingleLongTapStart(
-      BuildContext context, GestureLongPressDragStartDetails details) {
+  void _handleSingleLongTapStart(BuildContext context, LongPressStartDetails details) {
     // the EditableText widget will force the keyboard to come up if our focus node
     // is already focused. It does this by using a TextInputConnection
     // In order to tool it not to do that, we override our focus while selecting text
@@ -111,8 +108,7 @@ class SelectableText extends StatelessWidget {
     _effectiveFocusNode.overrideFocus = null;
   }
 
-  void _handleSingleLongTapMoveUpdate(
-      GestureLongPressDragUpdateDetails details) {
+  void _handleSingleLongTapMoveUpdate(LongPressMoveUpdateDetails details) {
     // the EditableText widget will force the keyboard to come up if our focus node
     // is already focused. It does this by using a TextInputConnection
     // In order to tool it not to do that, we override our focus while selecting text
@@ -128,17 +124,19 @@ class SelectableText extends StatelessWidget {
     _effectiveFocusNode.overrideFocus = null;
   }
 
-  void _handleSingleLongTapEnd(GestureLongPressDragUpDetails details) {
+  void _handleSingleLongTapEnd(LongPressEndDetails details) {
+    _editableTextKey.currentState.hideToolbar();
     _editableTextKey.currentState.showToolbar();
   }
 
   void _handleDoubleTapDown(TapDownDetails details) {
     _renderEditable.selectWord(cause: SelectionChangedCause.doubleTap);
+    _editableTextKey.currentState.hideToolbar();
     _editableTextKey.currentState.showToolbar();
   }
 
-  void _handleSelectionChanged(BuildContext context, TextSelection selection,
-      SelectionChangedCause cause) {
+  void _handleSelectionChanged(
+      BuildContext context, TextSelection selection, SelectionChangedCause cause) {
     // iOS cursor doesn't move via a selection handle. The scroll happens
     // directly from new text selection changes.
     if (Theme.of(context).platform == TargetPlatform.iOS &&
@@ -156,11 +154,9 @@ class SelectableText extends StatelessWidget {
 
     final DefaultTextStyle defaultTextStyle = DefaultTextStyle.of(context);
     TextStyle effectiveTextStyle = style;
-    if (style == null || style.inherit)
-      effectiveTextStyle = defaultTextStyle.style.merge(style);
+    if (style == null || style.inherit) effectiveTextStyle = defaultTextStyle.style.merge(style);
     if (MediaQuery.boldTextOverride(context))
-      effectiveTextStyle = effectiveTextStyle
-          .merge(const TextStyle(fontWeight: FontWeight.bold));
+      effectiveTextStyle = effectiveTextStyle.merge(const TextStyle(fontWeight: FontWeight.bold));
 
     bool paintCursorAboveText;
     bool cursorOpacityAnimates;
@@ -171,8 +167,7 @@ class SelectableText extends StatelessWidget {
 
     switch (themeData.platform) {
       case TargetPlatform.iOS:
-        textSelectionControls ??=
-            (iosTextSelectionControls ?? cupertinoCopyTextSelectionControls);
+        textSelectionControls ??= (iosTextSelectionControls ?? cupertinoCopyTextSelectionControls);
 
         paintCursorAboveText = true;
         cursorOpacityAnimates = true;
@@ -185,8 +180,7 @@ class SelectableText extends StatelessWidget {
         // This value is in device pixels, not logical pixels as is typically used
         // throughout the codebase.
         const int _iOSHorizontalOffset = -2;
-        cursorOffset = Offset(
-            _iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
+        cursorOffset = Offset(_iOSHorizontalOffset / MediaQuery.of(context).devicePixelRatio, 0);
         break;
 
       case TargetPlatform.android:
@@ -217,8 +211,7 @@ class SelectableText extends StatelessWidget {
         textDirection: textDirection,
         maxLines: null,
         selectionColor: themeData.textSelectionColor,
-        selectionControls:
-            enableInteractiveSelection ? textSelectionControls : null,
+        selectionControls: enableInteractiveSelection ? textSelectionControls : null,
         onSelectionChanged: (selection, cause) {
           _handleSelectionChanged(context, selection, cause);
         },
@@ -243,8 +236,8 @@ class SelectableText extends StatelessWidget {
         onSingleLongTapStart: (details) {
           _handleSingleLongTapStart(context, details);
         },
-        onSingleLongTapDragUpdate: _handleSingleLongTapMoveUpdate,
-        onSingleLongTapUp: _handleSingleLongTapEnd,
+        onSingleLongTapMoveUpdate: _handleSingleLongTapMoveUpdate,
+        onSingleLongTapEnd: _handleSingleLongTapEnd,
         onDoubleTapDown: _handleDoubleTapDown,
         behavior: HitTestBehavior.translucent,
         child: child,

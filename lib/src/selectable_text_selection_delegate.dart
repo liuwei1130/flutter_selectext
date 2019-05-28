@@ -24,11 +24,4 @@ abstract class SelectableTextSelectionDelegate extends TextSelectionDelegate {
     // allow to actually paste data by always keeping the same text we had before
     textEditingValue = value.copyWith(text: textEditingValue.text);
   }
-
-  /// 隱藏toolbar
-//  void hideToolbar();
-
-  /// 顯示toolbar
-  ///
-//  void bringIntoView(TextPosition position);
 }
