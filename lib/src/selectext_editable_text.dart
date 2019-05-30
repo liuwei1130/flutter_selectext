@@ -16,6 +16,8 @@ import 'package:flutter_selectext/src/selectable_text_selection_delegate.dart';
 export 'package:flutter/services.dart' show TextEditingValue, TextSelection, TextInputType;
 export 'package:flutter/rendering.dart' show SelectionChangedCause;
 
+String _tag = 'SelectableTextEditingController';
+
 /// Signature for the callback that reports when the user changes the selection
 /// (including the cursor location).
 typedef FlutterSelectionChangedCallback = void Function(
@@ -775,7 +777,6 @@ class SelectableTextEditableTextState extends State<SelectableTextEditableText>
       for (FocusScopeNode focusScopeNode in iterable.whereType<FocusScopeNode>()) {
         focusScopeNodeList.add(focusScopeNode);
       }
-      debugPrint('<<<<< focusScopeNodeList length : ${focusScopeNodeList.length}');
       for (int i = focusScopeNodeList.length - 1; i >= 1; i -= 1) {
         focusScopeNodeList[i].setFirstFocus(focusScopeNodeList[i - 1]);
       }
@@ -1053,6 +1054,7 @@ class SelectableTextEditableTextState extends State<SelectableTextEditableText>
   /// Returns `false` if a toolbar couldn't be shown such as when no text
   /// selection currently exists.
   bool showToolbar() {
+    debugPrint('$_tag, showToolbar, _selectionOverlay isNull : ${_selectionOverlay == null}');
     if (_selectionOverlay == null) return false;
 
     _selectionOverlay.showToolbar();
@@ -1061,6 +1063,7 @@ class SelectableTextEditableTextState extends State<SelectableTextEditableText>
 
   @override
   void hideToolbar() {
+    debugPrint('$_tag, hideToolbar, _selectionOverlay isNull : ${_selectionOverlay == null}');
     widget.focusNode.unfocus();
     _selectionOverlay?.hide();
   }

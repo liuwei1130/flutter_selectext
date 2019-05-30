@@ -6,6 +6,7 @@ import 'package:flutter_selectext/src/selectable_text_render_editable.dart';
 import 'package:flutter_selectext/src/selectable_text_selection_controls.dart';
 import 'package:flutter_selectext/src/selectable_text_selection_delegate.dart';
 
+String _tag = 'SelectableTextSelectionOverlay';
 /// The text position that a give selection handle manipulates. Dragging the
 /// [start] handle always moves the [start]/[baseOffset] of the selection.
 enum _TextSelectionHandlePosition { start, end }
@@ -116,8 +117,11 @@ class SelectableTextSelectionOverlay {
 
   /// Shows the toolbar by inserting it into the [context]'s overlay.
   void showToolbar() {
+    debugPrint('$_tag, showToolbar _toolbar isNull : ${_toolbar == null}');
     assert(_toolbar == null);
-    _toolbar = OverlayEntry(builder: _buildToolbar);
+    _toolbar = OverlayEntry(builder:(context) {
+     return  _buildToolbar(context);
+    });
     Overlay.of(context, debugRequiredFor: debugRequiredFor).insert(_toolbar);
     _toolbarController.forward(from: 0.0);
   }
@@ -208,6 +212,9 @@ class SelectableTextSelectionOverlay {
   }
 
   Widget _buildToolbar(BuildContext context) {
+
+    debugPrint('$_tag, _buildToolBar: selectionControls is Null: ${selectionControls == null}');
+
     if (selectionControls == null) return Container();
 
     // Find the horizontal midpoint, just above the selected text.
@@ -219,6 +226,8 @@ class SelectableTextSelectionOverlay {
           : (endpoints[0].point.dx + endpoints[1].point.dx) / 2.0,
       endpoints[0].point.dy - renderObject.preferredLineHeight,
     );
+
+    debugPrint('$_tag, _buildToolBar: midpoint: $midpoint');
 
     final Rect editingRegion = Rect.fromPoints(
       renderObject.localToGlobal(Offset.zero),

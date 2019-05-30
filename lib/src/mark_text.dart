@@ -19,8 +19,9 @@ class MarkText extends StatelessWidget {
     this.enableInteractiveSelection = true,
     this.onTap,
     @required this.markColor,
-    @required this.handlerMark,
+    @required this.translateBuildView,
     @required this.markList,
+    @required this.markString,
   })  : assert(text != null),
         textSpan = null,
         super(key: key);
@@ -37,8 +38,9 @@ class MarkText extends StatelessWidget {
     this.enableInteractiveSelection = true,
     this.onTap,
     @required this.markColor,
-    @required this.handlerMark,
+    @required this.translateBuildView,
     @required this.markList,
+    @required this.markString,
   })  : assert(textSpan != null),
         text = null,
         super(key: key);
@@ -54,14 +56,17 @@ class MarkText extends StatelessWidget {
   final DragStartBehavior dragStartBehavior;
   final GestureTapCallback onTap;
   final Color markColor;
-  final HandleMark handlerMark;
+  final TranslateBuildView translateBuildView;
+  final String markString;
   final List<TextSelection> markList;
 
   void _onPaintContent(TextPainter textPainter, Canvas canvas) {
-    for (TextSelection textSelection in markList) {
-      List<TextBox> textBox = textPainter.getBoxesForSelection(textSelection);
-      for (TextBox box in textBox) {
-        canvas.drawRect(box.toRect(), Paint()..color = markColor);
+    if (markList != null) {
+      for (TextSelection textSelection in markList) {
+        List<TextBox> textBox = textPainter.getBoxesForSelection(textSelection);
+        for (TextBox box in textBox) {
+          canvas.drawRect(box.toRect(), Paint()..color = markColor);
+        }
       }
     }
   }
@@ -69,9 +74,9 @@ class MarkText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final iosTextSelectionControls = CupertinoMarkTextSelectionControls(
-        handleMark: handlerMark, markColor: markColor);
+        translateBuildView: translateBuildView, markColor: markColor, markString: markString);
     final androidTextSelectionControls = MaterialMarkTextSelectionControls(
-        handleMark: handlerMark, markColor: markColor);
+        translateBuildView: translateBuildView, markColor: markColor, markString: markString);
 
     TextSpan textSpan = this.textSpan;
     if (text != null) {

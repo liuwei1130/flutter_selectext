@@ -1099,6 +1099,8 @@ class SelectableTextRender extends RenderBox {
 
   Offset _lastTapDownPosition;
 
+  get lastTapDownPosition=> _lastTapDownPosition;
+
   /// If [ignorePointer] is false (the default) then this method is called by
   /// the internal gesture recognizer's [TapGestureRecognizer.onTapDown]
   /// callback.

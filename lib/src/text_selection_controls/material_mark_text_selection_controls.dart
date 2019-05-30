@@ -12,61 +12,79 @@ const double _kHandleSize = 22.0;
 const double _kToolbarScreenPadding = 8.0;
 
 /// Manages a copy/paste text selection toolbar.
-class _TextSelectionToolbar extends StatelessWidget {
-  const _TextSelectionToolbar({
-    Key key,
-    @required this.markColor,
-    this.handleCopy,
-    this.handleSelectAll,
-    this.handleMark,
-  }) : super(key: key);
+class _TextSelectionToolbar extends StatefulWidget {
+  const _TextSelectionToolbar(
+      {Key key,
+      this.handleCopy,
+      this.handleSelectAll,
+      this.translateBuildView,
+      this.markColor,
+      this.markString,
+      this.delegate,
+      this.context,
+      this.globalEditableRegion,
+      this.position})
+      : super(key: key);
 
   final VoidCallback handleCopy;
   final VoidCallback handleSelectAll;
-  final VoidCallback handleMark;
+  final TranslateBuildView translateBuildView;
+  final TextSelectionDelegate delegate;
+  final BuildContext context;
+  final Rect globalEditableRegion;
+  final Offset position;
+
+  /// 自定义的文字
+  final String markString;
   final Color markColor;
 
   @override
-  Widget build(BuildContext context) {
-    final List<Widget> items = <Widget>[];
-    final MaterialLocalizations localizations =
-        MaterialLocalizations.of(context);
+  State<StatefulWidget> createState() {
+    return _TextSelectionToolbarState();
+  }
+}
 
-    if (handleMark != null) {
-      items.add(Padding(
-        padding: EdgeInsets.all(8),
-        child: RawMaterialButton(
-          onPressed: handleMark,
-          shape: new CircleBorder(
-              side: BorderSide(color: Colors.grey, width: 3.0)),
-          elevation: 2.0,
-          fillColor: markColor,
-        ),
-      ));
+class _TextSelectionToolbarState extends State<_TextSelectionToolbar> {
+  @override
+  Widget build(BuildContext context) {
+    var childWidget;
+    final List<Widget> items = <Widget>[];
+    final MaterialLocalizations localizations = MaterialLocalizations.of(context);
+
+    if (widget.translateBuildView != null) {
+      items.add(FlatButton(
+          child: Text(widget.markString),
+          onPressed: () {
+            widget.translateBuildView(widget.delegate.textEditingValue);
+          }));
     }
 
-    if (handleCopy != null)
-      items.add(FlatButton(
-          child: Text(localizations.copyButtonLabel), onPressed: handleCopy));
+    if (widget.handleCopy != null)
+      items.add(
+          FlatButton(child: Text(localizations.copyButtonLabel), onPressed: widget.handleCopy));
 
-    if (handleSelectAll != null)
-      items.add(FlatButton(
-          child: Text(localizations.selectAllButtonLabel),
-          onPressed: handleSelectAll));
-
-    return Material(
+    childWidget = Material(
         elevation: 1.0,
-        child: Container(
-            height: 44.0,
-            child: Row(mainAxisSize: MainAxisSize.min, children: items)));
+        child:
+            Container(height: 44.0, child: Row(mainAxisSize: MainAxisSize.min, children: items)));
+
+    return ConstrainedBox(
+        constraints: BoxConstraints.tight(widget.globalEditableRegion.size),
+        child: CustomSingleChildLayout(
+          delegate: _TextSelectionToolbarLayout(
+            MediaQuery.of(context).size,
+            widget.globalEditableRegion,
+            widget.position,
+          ),
+          child: childWidget,
+        ));
   }
 }
 
 /// Centers the toolbar around the given position, ensuring that it remains on
 /// screen.
 class _TextSelectionToolbarLayout extends SingleChildLayoutDelegate {
-  _TextSelectionToolbarLayout(
-      this.screenSize, this.globalEditableRegion, this.position);
+  _TextSelectionToolbarLayout(this.screenSize, this.globalEditableRegion, this.position);
 
   /// The size of the screen at the time that the toolbar was last laid out.
   final Size screenSize;
@@ -130,57 +148,47 @@ class _TextSelectionHandlePainter extends CustomPainter {
   }
 }
 
-class MaterialMarkTextSelectionControls
-    extends SelectableTextSelectionControls {
+class MaterialMarkTextSelectionControls extends SelectableTextSelectionControls {
   MaterialMarkTextSelectionControls(
-      {@required this.markColor, this.handleMark});
+      {@required this.markColor, this.markString, this.translateBuildView});
 
-  final HandleMark handleMark;
+  final String markString;
+  final TranslateBuildView translateBuildView;
   final Color markColor;
 
   @override
   Size handleSize = const Size(_kHandleSize, _kHandleSize);
 
-  TextSelection _selection(TextSelectionDelegate delegate) =>
-      delegate.textEditingValue.selection;
+  TextSelection _selection(TextSelectionDelegate delegate) => delegate.textEditingValue.selection;
 
   /// Builder for material-style copy/paste text selection toolbar.
   @override
-  Widget buildToolbar(BuildContext context, Rect globalEditableRegion,
-      Offset position, TextSelectionDelegate delegate) {
+  Widget buildToolbar(BuildContext context, Rect globalEditableRegion, Offset position,
+      TextSelectionDelegate delegate) {
     assert(debugCheckHasMediaQuery(context));
     assert(debugCheckHasMaterialLocalizations(context));
-    return ConstrainedBox(
-        constraints: BoxConstraints.tight(globalEditableRegion.size),
-        child: CustomSingleChildLayout(
-          delegate: _TextSelectionToolbarLayout(
-            MediaQuery.of(context).size,
-            globalEditableRegion,
-            position,
-          ),
-          child: _TextSelectionToolbar(
-            handleCopy:
-                isTextSelection(delegate) ? () => handleCopy(delegate) : null,
-            handleMark: isTextSelection(delegate)
-                ? () => handleMark(_selection(delegate))
-                : null,
-            markColor: markColor,
-          ),
-        ));
+    return _TextSelectionToolbar(
+      context: context,
+      globalEditableRegion: globalEditableRegion,
+      position: position,
+      handleCopy: isTextSelection(delegate) ? () => handleCopy(delegate) : null,
+      translateBuildView: translateBuildView,
+      delegate: delegate,
+      markString: markString,
+      markColor: markColor,
+    );
   }
 
   /// Builder for material-style text selection handles.
   @override
-  Widget buildHandle(
-      BuildContext context, TextSelectionHandleType type, double textHeight) {
+  Widget buildHandle(BuildContext context, TextSelectionHandleType type, double textHeight) {
     final Widget handle = Padding(
       padding: const EdgeInsets.only(right: 26.0, bottom: 26.0),
       child: SizedBox(
         width: _kHandleSize,
         height: _kHandleSize,
         child: CustomPaint(
-          painter: _TextSelectionHandlePainter(
-              color: Theme.of(context).textSelectionHandleColor),
+          painter: _TextSelectionHandlePainter(color: Theme.of(context).textSelectionHandleColor),
         ),
       ),
     );
@@ -190,13 +198,11 @@ class MaterialMarkTextSelectionControls
     // straight up or up-right depending on the handle type.
     switch (type) {
       case TextSelectionHandleType.left: // points up-right
-        return Transform(
-            transform: Matrix4.rotationZ(math.pi / 2.0), child: handle);
+        return Transform(transform: Matrix4.rotationZ(math.pi / 2.0), child: handle);
       case TextSelectionHandleType.right: // points up-left
         return handle;
       case TextSelectionHandleType.collapsed: // points up
-        return Transform(
-            transform: Matrix4.rotationZ(math.pi / 4.0), child: handle);
+        return Transform(transform: Matrix4.rotationZ(math.pi / 4.0), child: handle);
     }
     assert(type != null);
     return null;

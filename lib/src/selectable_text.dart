@@ -8,6 +8,10 @@ import 'package:flutter_selectext/src/selectext_editable_text.dart';
 import 'package:flutter_selectext/src/selectable_text_render_editable.dart';
 import 'package:flutter_selectext/src/selectable_text_selection_controls.dart';
 import 'package:flutter_selectext/src/text_selection_controls/material_copy_text_selection_controls.dart';
+import 'package:flutter_selectext/src/text_selection_controls/cupertino_mark_text_selection_controls.dart';
+import 'package:flutter_selectext/src/text_selection_controls/material_mark_text_selection_controls.dart';
+
+String _tag = 'SelectableText';
 
 class SelectableText extends StatelessWidget {
   SelectableText(this.text,
@@ -74,10 +78,34 @@ class SelectableText extends StatelessWidget {
   }
 
   void _handleTapDown(TapDownDetails details) {
+    debugPrint('$_tag, _handleTapDown');
     _renderEditable.handleTapDown(details);
   }
 
-  void _handleSingleTapUp(TapUpDetails details) {
+  void _handleSingleTapUp(BuildContext context, TapUpDetails details) {
+    debugPrint('$_tag, _handleSingleTapUp');
+    _renderEditable.selectWord(cause: SelectionChangedCause.tap);
+
+    switch (Theme.of(context).platform) {
+      case TargetPlatform.iOS:
+        if (iosTextSelectionControls != null &&
+            iosTextSelectionControls is CupertinoMarkTextSelectionControls) {
+          (iosTextSelectionControls as CupertinoMarkTextSelectionControls).translateBuildView(
+            _editableTextKey?.currentState?.textEditingValue
+          );
+        }
+        break;
+      case TargetPlatform.android:
+      case TargetPlatform.fuchsia:
+        if (androidTextSelectionControls != null &&
+            androidTextSelectionControls is MaterialMarkTextSelectionControls) {
+          (androidTextSelectionControls as CupertinoMarkTextSelectionControls).translateBuildView(
+            _editableTextKey?.currentState?.textEditingValue
+          );
+        }
+        break;
+    }
+    _editableTextKey.currentState.hideToolbar();
     _effectiveFocusNode.unfocus();
     if (onTap != null) {
       onTap();
@@ -85,6 +113,7 @@ class SelectableText extends StatelessWidget {
   }
 
   void _handleSingleLongTapStart(BuildContext context, LongPressStartDetails details) {
+    debugPrint('$_tag, _handleSingleLongTapStart');
     // the EditableText widget will force the keyboard to come up if our focus node
     // is already focused. It does this by using a TextInputConnection
     // In order to tool it not to do that, we override our focus while selecting text
@@ -109,6 +138,7 @@ class SelectableText extends StatelessWidget {
   }
 
   void _handleSingleLongTapMoveUpdate(LongPressMoveUpdateDetails details) {
+    debugPrint('$_tag, _handleSingleLongTapMoveUpdate');
     // the EditableText widget will force the keyboard to come up if our focus node
     // is already focused. It does this by using a TextInputConnection
     // In order to tool it not to do that, we override our focus while selecting text
@@ -119,17 +149,18 @@ class SelectableText extends StatelessWidget {
       to: details.globalPosition,
       cause: SelectionChangedCause.longPress,
     );
-
     //Stop overriding our focus
     _effectiveFocusNode.overrideFocus = null;
   }
 
   void _handleSingleLongTapEnd(LongPressEndDetails details) {
-    _editableTextKey.currentState.hideToolbar();
+    debugPrint('$_tag, _handleSingleLongTapEnd');
+
     _editableTextKey.currentState.showToolbar();
   }
 
   void _handleDoubleTapDown(TapDownDetails details) {
+    debugPrint('$_tag, _handleDoubleTapDown');
     _renderEditable.selectWord(cause: SelectionChangedCause.doubleTap);
     _editableTextKey.currentState.hideToolbar();
     _editableTextKey.currentState.showToolbar();
@@ -137,6 +168,7 @@ class SelectableText extends StatelessWidget {
 
   void _handleSelectionChanged(
       BuildContext context, TextSelection selection, SelectionChangedCause cause) {
+    debugPrint('$_tag, _handleSelectionChanged');
     // iOS cursor doesn't move via a selection handle. The scroll happens
     // directly from new text selection changes.
     if (Theme.of(context).platform == TargetPlatform.iOS &&
@@ -232,7 +264,9 @@ class SelectableText extends StatelessWidget {
     return Semantics(
       child: TextSelectionGestureDetector(
         onTapDown: _handleTapDown,
-        onSingleTapUp: _handleSingleTapUp,
+        onSingleTapUp: (details) {
+          _handleSingleTapUp(context, details);
+        },
         onSingleLongTapStart: (details) {
           _handleSingleLongTapStart(context, details);
         },
@@ -244,41 +278,4 @@ class SelectableText extends StatelessWidget {
       ),
     );
   }
-
-//  @override
-//  Widget build(BuildContext context) {
-//    final DefaultTextStyle defaultTextStyle = DefaultTextStyle.of(context);
-//    TextStyle effectiveTextStyle = style;
-//    if (style == null || style.inherit)
-//      effectiveTextStyle = defaultTextStyle.style.merge(style);
-//    if (MediaQuery.boldTextOverride(context))
-//      effectiveTextStyle = effectiveTextStyle
-//          .merge(const TextStyle(fontWeight: FontWeight.bold));
-//    Widget result = SelectableRichText(
-//      textAlign: textAlign ?? defaultTextStyle.textAlign ?? TextAlign.start,
-//      textDirection: textDirection,
-//      // RichText uses Directionality.of to obtain a default if this is null.
-//      locale: locale,
-//      // RichText uses Localizations.localeOf to obtain a default if this is null
-////      softWrap: softWrap ?? defaultTextStyle.softWrap,
-////      overflow: overflow ?? defaultTextStyle.overflow,
-//      textScaleFactor: textScaleFactor ?? MediaQuery.textScaleFactorOf(context),
-//      maxLines: maxLines ?? defaultTextStyle.maxLines,
-////      strutStyle: strutStyle,
-//      textSpan: TextSpan(
-//        style: effectiveTextStyle,
-//        text: data,
-//        children: textSpan != null ? <TextSpan>[textSpan] : null,
-//      ),
-//    );
-//    if (semanticsLabel != null) {
-//      result = Semantics(
-//          textDirection: textDirection,
-//          label: semanticsLabel,
-//          child: ExcludeSemantics(
-//            child: result,
-//          ));
-//    }
-//    return result;
-//  }
 }

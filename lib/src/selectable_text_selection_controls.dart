@@ -11,14 +11,13 @@ abstract class SelectableTextSelectionControls {
   ///
   /// The top left corner of this widget is positioned at the bottom of the
   /// selection position.
-  Widget buildHandle(BuildContext context, TextSelectionHandleType type,
-      double textLineHeight);
+  Widget buildHandle(BuildContext context, TextSelectionHandleType type, double textLineHeight);
 
   /// Builds a toolbar near a text selection.
   ///
   /// Typically displays buttons for copying and pasting text.
-  Widget buildToolbar(BuildContext context, Rect globalEditableRegion,
-      Offset position, SelectableTextSelectionDelegate delegate);
+  Widget buildToolbar(BuildContext context, Rect globalEditableRegion, Offset position,
+      SelectableTextSelectionDelegate delegate);
 
   /// Returns the size of the selection handle.
   Size get handleSize;

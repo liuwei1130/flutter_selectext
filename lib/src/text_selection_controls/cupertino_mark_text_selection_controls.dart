@@ -7,6 +7,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_selectext/src/text_selection_controls/handle_mark.dart';
 import 'package:flutter_selectext/src/selectable_text_selection_controls.dart';
 
+String _tag = 'CupertinoMarkText';
 // Padding around the line at the edge of the text selection that has 0 width and
 // the height of the text font.
 const double _kHandlesPadding = 18.0;
@@ -26,10 +27,8 @@ const Color _kHandlesColor = Color(0xFF136FE0);
 // covering the text being selected.
 const Size _kSelectionOffset = Size(20.0, 30.0);
 const Size _kToolbarTriangleSize = Size(18.0, 9.0);
-const EdgeInsets _kToolbarButtonPadding =
-    EdgeInsets.symmetric(vertical: 10.0, horizontal: 18.0);
-const BorderRadius _kToolbarBorderRadius =
-    BorderRadius.all(Radius.circular(7.5));
+const EdgeInsets _kToolbarButtonPadding = EdgeInsets.symmetric(vertical: 10.0, horizontal: 18.0);
+const BorderRadius _kToolbarBorderRadius = BorderRadius.all(Radius.circular(7.5));
 
 const TextStyle _kToolbarButtonFontStyle = TextStyle(
   inherit: false,
@@ -59,53 +58,59 @@ class _TextSelectionToolbarNotchPainter extends CustomPainter {
 }
 
 /// Manages a copy/paste text selection toolbar.
-class _TextSelectionToolbar extends StatelessWidget {
-  const _TextSelectionToolbar({
-    Key key,
-    this.handleCopy,
-    this.handleSelectAll,
-    this.handleMark,
-    this.markColor,
-  }) : super(key: key);
+class _TextSelectionToolbar extends StatefulWidget {
+  const _TextSelectionToolbar(
+      {Key key,
+      this.handleCopy,
+      this.handleSelectAll,
+      this.translateBuildView,
+      this.markColor,
+      this.markString,
+      this.delegate,
+      this.context,
+      this.globalEditableRegion,
+      this.position})
+      : super(key: key);
 
   final VoidCallback handleCopy;
   final VoidCallback handleSelectAll;
-  final VoidCallback handleMark;
+  final TranslateBuildView translateBuildView;
+  final TextSelectionDelegate delegate;
+  final BuildContext context;
+  final Rect globalEditableRegion;
+  final Offset position;
+
+  /// 自定义的文字
+  final String markString;
   final Color markColor;
 
   @override
+  State<StatefulWidget> createState() {
+    return _TextSelectionToolbarState();
+  }
+}
+
+class _TextSelectionToolbarState extends State<_TextSelectionToolbar> {
+  @override
   Widget build(BuildContext context) {
+    debugPrint('$_tag, _TextSelectionToolbarState : build');
+    var childWidget;
+
     final List<Widget> items = <Widget>[];
     final Widget onePhysicalPixelVerticalDivider =
         SizedBox(width: 1.0 / MediaQuery.of(context).devicePixelRatio);
-    final CupertinoLocalizations localizations =
-        CupertinoLocalizations.of(context);
+    final CupertinoLocalizations localizations = CupertinoLocalizations.of(context);
 
-    if (handleMark != null) {
-      items.add(_buildToolbarColorButton(markColor, handleMark));
+    if (widget.translateBuildView != null) {
+      items.add(_buildToolbarButton(widget.markString, () {
+        widget.translateBuildView(widget.delegate.textEditingValue);
+        widget.delegate.hideToolbar();
+      }));
     }
 
-//    if (handleCut != null) {
-//      if (items.isNotEmpty) items.add(onePhysicalPixelVerticalDivider);
-//      items.add(_buildToolbarButton(localizations.cutButtonLabel, handleCut));
-//    }
-
-    if (handleCopy != null) {
+    if (widget.handleCopy != null) {
       if (items.isNotEmpty) items.add(onePhysicalPixelVerticalDivider);
-//      items.add(_buildToolbarButton('複製', handleCopy));
-      items.add(_buildToolbarButton(localizations.copyButtonLabel, handleCopy));
-    }
-
-//    if (handlePaste != null) {
-//      if (items.isNotEmpty) items.add(onePhysicalPixelVerticalDivider);
-//      items.add(
-//          _buildToolbarButton(localizations.pasteButtonLabel, handlePaste));
-//    }
-
-    if (handleSelectAll != null) {
-      if (items.isNotEmpty) items.add(onePhysicalPixelVerticalDivider);
-      items.add(_buildToolbarButton(
-          localizations.selectAllButtonLabel, handleSelectAll));
+      items.add(_buildToolbarButton(localizations.copyButtonLabel, widget.handleCopy));
     }
 
     if (items.isEmpty) return Container();
@@ -116,7 +121,7 @@ class _TextSelectionToolbar extends StatelessWidget {
           painter: _TextSelectionToolbarNotchPainter(),
         ));
 
-    return Column(
+    childWidget = Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
         ClipRRect(
@@ -143,6 +148,16 @@ class _TextSelectionToolbar extends StatelessWidget {
         const Padding(padding: EdgeInsets.only(bottom: 10.0)),
       ],
     );
+    return ConstrainedBox(
+        constraints: BoxConstraints.tight(widget.globalEditableRegion.size),
+        child: CustomSingleChildLayout(
+          delegate: _TextSelectionToolbarLayout(
+            MediaQuery.of(widget.context).size,
+            widget.globalEditableRegion,
+            widget.position,
+          ),
+          child: childWidget,
+        ));
   }
 
   /// Builds a themed [CupertinoButton] for the toolbar.
@@ -159,33 +174,10 @@ class _TextSelectionToolbar extends StatelessWidget {
   }
 }
 
-/// Builds a themed [CupertinoButton] for the toolbar.
-CupertinoButton _buildToolbarColorButton(Color color, VoidCallback onPressed) {
-  return CupertinoButton(
-    child: Container(
-      foregroundDecoration: ShapeDecoration(
-        color: color,
-        shape: CircleBorder(
-          side: BorderSide(color: Colors.grey, width: 2.0),
-        ),
-      ),
-      height: 18,
-      width: 18,
-    ),
-    color: _kToolbarBackgroundColor,
-    minSize: _kToolbarHeight,
-    padding: _kToolbarButtonPadding,
-    borderRadius: null,
-    pressedOpacity: 0.7,
-    onPressed: onPressed,
-  );
-}
-
 /// Centers the toolbar around the given position, ensuring that it remains on
 /// screen.
 class _TextSelectionToolbarLayout extends SingleChildLayoutDelegate {
-  _TextSelectionToolbarLayout(
-      this.screenSize, this.globalEditableRegion, this.position);
+  _TextSelectionToolbarLayout(this.screenSize, this.globalEditableRegion, this.position);
 
   /// The size of the screen at the time that the toolbar was last laid out.
   final Size screenSize;
@@ -219,6 +211,8 @@ class _TextSelectionToolbarLayout extends SingleChildLayoutDelegate {
       y = _kToolbarScreenPadding;
     else if (y + childSize.height > screenSize.height - _kToolbarScreenPadding)
       y = screenSize.height - childSize.height - _kToolbarScreenPadding;
+
+    debugPrint('$_tag, getPositionForChild : x : $x, y : $y');
 
     return Offset(x, y);
   }
@@ -260,57 +254,44 @@ class _TextSelectionHandlePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_TextSelectionHandlePainter oldPainter) =>
-      origin != oldPainter.origin;
+  bool shouldRepaint(_TextSelectionHandlePainter oldPainter) => origin != oldPainter.origin;
 }
 
-class CupertinoMarkTextSelectionControls
-    extends SelectableTextSelectionControls {
+class CupertinoMarkTextSelectionControls extends SelectableTextSelectionControls {
   CupertinoMarkTextSelectionControls(
-      {@required this.markColor, this.handleMark});
+      {@required this.markColor, this.markString, this.translateBuildView});
 
-  final HandleMark handleMark;
+  final String markString;
+  final TranslateBuildView translateBuildView;
   final Color markColor;
 
   @override
   Size handleSize = _kSelectionOffset; // Used for drag selection offset.
 
-  TextSelection _selection(TextSelectionDelegate delegate) =>
-      delegate.textEditingValue.selection;
-
   /// Builder for iOS-style copy/paste text selection toolbar.
   @override
-  Widget buildToolbar(BuildContext context, Rect globalEditableRegion,
-      Offset position, TextSelectionDelegate delegate) {
+  Widget buildToolbar(BuildContext context, Rect globalEditableRegion, Offset position,
+      TextSelectionDelegate delegate) {
     assert(debugCheckHasMediaQuery(context));
-
-    return ConstrainedBox(
-        constraints: BoxConstraints.tight(globalEditableRegion.size),
-        child: CustomSingleChildLayout(
-          delegate: _TextSelectionToolbarLayout(
-            MediaQuery.of(context).size,
-            globalEditableRegion,
-            position,
-          ),
-          child: _TextSelectionToolbar(
-            handleCopy:
-                isTextSelection(delegate) ? () => handleCopy(delegate) : null,
-            handleMark: isTextSelection(delegate)
-                ? () => handleMark(_selection(delegate))
-                : null,
-            markColor: markColor,
-          ),
-        ));
+    debugPrint('$_tag, buildToolbar');
+    return _TextSelectionToolbar(
+      context: context,
+      globalEditableRegion: globalEditableRegion,
+      position: position,
+      handleCopy: isTextSelection(delegate) ? () => handleCopy(delegate) : null,
+      translateBuildView: translateBuildView,
+      delegate: delegate,
+      markString: markString,
+      markColor: markColor,
+    );
   }
 
   /// Builder for iOS text selection edges.
   @override
-  Widget buildHandle(BuildContext context, TextSelectionHandleType type,
-      double textLineHeight) {
+  Widget buildHandle(BuildContext context, TextSelectionHandleType type, double textLineHeight) {
     // We want a size that's a vertical line the height of the text plus a 18.0
     // padding in every direction that will constitute the selection drag area.
-    final Size desiredSize =
-        Size(2.0 * _kHandlesPadding, textLineHeight + 2.0 * _kHandlesPadding);
+    final Size desiredSize = Size(2.0 * _kHandlesPadding, textLineHeight + 2.0 * _kHandlesPadding);
 
     final Widget handle = SizedBox.fromSize(
       size: desiredSize,
@@ -330,19 +311,16 @@ class CupertinoMarkTextSelectionControls
     // baseline. We transform the handle such that the SizedBox is superimposed
     // on top of the text selection endpoints.
     switch (type) {
-      case TextSelectionHandleType
-          .left: // The left handle is upside down on iOS.
+      case TextSelectionHandleType.left: // The left handle is upside down on iOS.
         return Transform(
-            transform: Matrix4.rotationZ(math.pi)
-              ..translate(-_kHandlesPadding, -_kHandlesPadding),
+            transform: Matrix4.rotationZ(math.pi)..translate(-_kHandlesPadding, -_kHandlesPadding),
             child: handle);
       case TextSelectionHandleType.right:
         return Transform(
             transform: Matrix4.translationValues(
                 -_kHandlesPadding, -(textLineHeight + _kHandlesPadding), 0.0),
             child: handle);
-      case TextSelectionHandleType
-          .collapsed: // iOS doesn't draw anything for collapsed selections.
+      case TextSelectionHandleType.collapsed: // iOS doesn't draw anything for collapsed selections.
         return Container();
     }
     assert(type != null);

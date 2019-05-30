@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-typedef HandleMark = void Function(TextSelection selection);
+/// 返回翻译窗体
+typedef TranslateBuildView = void Function(TextEditingValue textEditingValue);

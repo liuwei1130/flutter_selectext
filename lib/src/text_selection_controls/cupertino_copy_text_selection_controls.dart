@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_selectext/src/selectable_text_selection_controls.dart';
+import 'package:flutter_selectext/src/selectable_text_selection_delegate.dart';
 
 // Padding around the line at the edge of the text selection that has 0 width and
 // the height of the text font.
@@ -24,10 +25,8 @@ const Color _kHandlesColor = Color(0xFF136FE0);
 // covering the text being selected.
 const Size _kSelectionOffset = Size(20.0, 30.0);
 const Size _kToolbarTriangleSize = Size(18.0, 9.0);
-const EdgeInsets _kToolbarButtonPadding =
-    EdgeInsets.symmetric(vertical: 10.0, horizontal: 18.0);
-const BorderRadius _kToolbarBorderRadius =
-    BorderRadius.all(Radius.circular(7.5));
+const EdgeInsets _kToolbarButtonPadding = EdgeInsets.symmetric(vertical: 10.0, horizontal: 18.0);
+const BorderRadius _kToolbarBorderRadius = BorderRadius.all(Radius.circular(7.5));
 
 const TextStyle _kToolbarButtonFontStyle = TextStyle(
   inherit: false,
@@ -72,8 +71,7 @@ class _TextSelectionToolbar extends StatelessWidget {
     final List<Widget> items = <Widget>[];
     final Widget onePhysicalPixelVerticalDivider =
         SizedBox(width: 1.0 / MediaQuery.of(context).devicePixelRatio);
-    final CupertinoLocalizations localizations =
-        CupertinoLocalizations.of(context);
+    final CupertinoLocalizations localizations = CupertinoLocalizations.of(context);
 
     if (handleCopy != null) {
       if (items.isNotEmpty) items.add(onePhysicalPixelVerticalDivider);
@@ -82,8 +80,7 @@ class _TextSelectionToolbar extends StatelessWidget {
 
     if (handleSelectAll != null) {
       if (items.isNotEmpty) items.add(onePhysicalPixelVerticalDivider);
-      items.add(_buildToolbarButton(
-          localizations.selectAllButtonLabel, handleSelectAll));
+      items.add(_buildToolbarButton(localizations.selectAllButtonLabel, handleSelectAll));
     }
 
     if (items.isEmpty) return Container();
@@ -136,8 +133,7 @@ class _TextSelectionToolbar extends StatelessWidget {
 /// Centers the toolbar around the given position, ensuring that it remains on
 /// screen.
 class _TextSelectionToolbarLayout extends SingleChildLayoutDelegate {
-  _TextSelectionToolbarLayout(
-      this.screenSize, this.globalEditableRegion, this.position);
+  _TextSelectionToolbarLayout(this.screenSize, this.globalEditableRegion, this.position);
 
   /// The size of the screen at the time that the toolbar was last laid out.
   final Size screenSize;
@@ -212,19 +208,17 @@ class _TextSelectionHandlePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_TextSelectionHandlePainter oldPainter) =>
-      origin != oldPainter.origin;
+  bool shouldRepaint(_TextSelectionHandlePainter oldPainter) => origin != oldPainter.origin;
 }
 
-class CupertinoCopyTextSelectionControls
-    extends SelectableTextSelectionControls {
+class CupertinoCopyTextSelectionControls extends SelectableTextSelectionControls {
   @override
   Size handleSize = _kSelectionOffset; // Used for drag selection offset.
 
   /// Builder for iOS-style copy/paste text selection toolbar.
   @override
-  Widget buildToolbar(BuildContext context, Rect globalEditableRegion,
-      Offset position, TextSelectionDelegate delegate) {
+  Widget buildToolbar(BuildContext context, Rect globalEditableRegion, Offset position,
+      SelectableTextSelectionDelegate delegate) {
     assert(debugCheckHasMediaQuery(context));
 
     return ConstrainedBox(
@@ -236,20 +230,17 @@ class CupertinoCopyTextSelectionControls
             position,
           ),
           child: _TextSelectionToolbar(
-            handleCopy:
-                isTextSelection(delegate) ? () => handleCopy(delegate) : null,
+            handleCopy: isTextSelection(delegate) ? () => handleCopy(delegate) : null,
           ),
         ));
   }
 
   /// Builder for iOS text selection edges.
   @override
-  Widget buildHandle(BuildContext context, TextSelectionHandleType type,
-      double textLineHeight) {
+  Widget buildHandle(BuildContext context, TextSelectionHandleType type, double textLineHeight) {
     // We want a size that's a vertical line the height of the text plus a 18.0
     // padding in every direction that will constitute the selection drag area.
-    final Size desiredSize =
-        Size(2.0 * _kHandlesPadding, textLineHeight + 2.0 * _kHandlesPadding);
+    final Size desiredSize = Size(2.0 * _kHandlesPadding, textLineHeight + 2.0 * _kHandlesPadding);
 
     final Widget handle = SizedBox.fromSize(
       size: desiredSize,
@@ -269,19 +260,16 @@ class CupertinoCopyTextSelectionControls
     // baseline. We transform the handle such that the SizedBox is superimposed
     // on top of the text selection endpoints.
     switch (type) {
-      case TextSelectionHandleType
-          .left: // The left handle is upside down on iOS.
+      case TextSelectionHandleType.left: // The left handle is upside down on iOS.
         return Transform(
-            transform: Matrix4.rotationZ(math.pi)
-              ..translate(-_kHandlesPadding, -_kHandlesPadding),
+            transform: Matrix4.rotationZ(math.pi)..translate(-_kHandlesPadding, -_kHandlesPadding),
             child: handle);
       case TextSelectionHandleType.right:
         return Transform(
             transform: Matrix4.translationValues(
                 -_kHandlesPadding, -(textLineHeight + _kHandlesPadding), 0.0),
             child: handle);
-      case TextSelectionHandleType
-          .collapsed: // iOS doesn't draw anything for collapsed selections.
+      case TextSelectionHandleType.collapsed: // iOS doesn't draw anything for collapsed selections.
         return Container();
     }
     assert(type != null);
