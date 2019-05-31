@@ -1497,7 +1497,7 @@ class SelectableTextRender extends RenderBox {
 
   void _paintContents(PaintingContext context, Offset offset) {
     assert(_textLayoutLastWidth == constraints.maxWidth);
-    final Offset effectiveOffset = offset + _paintOffset;
+    final Offset effectiveOffset = Offset.zero;/*offset + _paintOffset;*/
 
     bool showSelection = false;
     bool showCaret = false;
