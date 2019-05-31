@@ -90,18 +90,16 @@ class SelectableText extends StatelessWidget {
       case TargetPlatform.iOS:
         if (iosTextSelectionControls != null &&
             iosTextSelectionControls is CupertinoMarkTextSelectionControls) {
-          (iosTextSelectionControls as CupertinoMarkTextSelectionControls).translateBuildView(
-            _editableTextKey?.currentState?.textEditingValue
-          );
+          (iosTextSelectionControls as CupertinoMarkTextSelectionControls)
+              .translateBuildView(_editableTextKey?.currentState?.textEditingValue);
         }
         break;
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
         if (androidTextSelectionControls != null &&
             androidTextSelectionControls is MaterialMarkTextSelectionControls) {
-          (androidTextSelectionControls as CupertinoMarkTextSelectionControls).translateBuildView(
-            _editableTextKey?.currentState?.textEditingValue
-          );
+          (androidTextSelectionControls as CupertinoMarkTextSelectionControls)
+              .translateBuildView(_editableTextKey?.currentState?.textEditingValue);
         }
         break;
     }
@@ -162,7 +160,6 @@ class SelectableText extends StatelessWidget {
   void _handleDoubleTapDown(TapDownDetails details) {
     debugPrint('$_tag, _handleDoubleTapDown');
     _renderEditable.selectWord(cause: SelectionChangedCause.doubleTap);
-    _editableTextKey.currentState.hideToolbar();
     _editableTextKey.currentState.showToolbar();
   }
 
@@ -263,19 +260,19 @@ class SelectableText extends StatelessWidget {
 
     return Semantics(
       child: TextSelectionGestureDetector(
-        onTapDown: _handleTapDown,
-        onSingleTapUp: (details) {
-          _handleSingleTapUp(context, details);
-        },
-        onSingleLongTapStart: (details) {
-          _handleSingleLongTapStart(context, details);
-        },
-        onSingleLongTapMoveUpdate: _handleSingleLongTapMoveUpdate,
-        onSingleLongTapEnd: _handleSingleLongTapEnd,
-        onDoubleTapDown: _handleDoubleTapDown,
-        behavior: HitTestBehavior.translucent,
-        child: child,
-      ),
+          onTapDown: _handleTapDown,
+          onSingleTapUp: (details) {
+            _handleSingleTapUp(context, details);
+          },
+          onSingleLongTapStart: (details) {
+            _handleSingleLongTapStart(context, details);
+          },
+          onSingleLongTapMoveUpdate: _handleSingleLongTapMoveUpdate,
+          onSingleLongTapEnd: _handleSingleLongTapEnd,
+          onDoubleTapDown: _handleDoubleTapDown,
+          behavior: HitTestBehavior.translucent,
+          child: child,
+        ),
     );
   }
 }

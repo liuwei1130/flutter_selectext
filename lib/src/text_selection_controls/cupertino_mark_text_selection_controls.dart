@@ -94,7 +94,7 @@ class _TextSelectionToolbarState extends State<_TextSelectionToolbar> {
   @override
   Widget build(BuildContext context) {
     debugPrint('$_tag, _TextSelectionToolbarState : build');
-    var childWidget;
+    Widget childWidget;
 
     final List<Widget> items = <Widget>[];
     final Widget onePhysicalPixelVerticalDivider =
