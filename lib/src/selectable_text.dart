@@ -98,7 +98,7 @@ class SelectableText extends StatelessWidget {
       case TargetPlatform.fuchsia:
         if (androidTextSelectionControls != null &&
             androidTextSelectionControls is MaterialMarkTextSelectionControls) {
-          (androidTextSelectionControls as CupertinoMarkTextSelectionControls)
+          (androidTextSelectionControls as MaterialMarkTextSelectionControls)
               .translateBuildView(_editableTextKey?.currentState?.textEditingValue);
         }
         break;
