@@ -1146,4 +1146,16 @@ class SelectableTextEditableTextState extends State<SelectableTextEditableText>
     }
     return TextSpan(style: widget.style, text: text);
   }
+
+  @override
+  bool get cutEnabled => true;
+
+  @override
+  bool get copyEnabled => true;
+
+  @override
+  bool get pasteEnabled => false;
+
+  @override
+  bool get selectAllEnabled => true;
 }
