@@ -84,11 +84,13 @@ class SelectableText extends StatelessWidget {
 
   void _handleSingleTapUp(BuildContext context, TapUpDetails details) {
     debugPrint('$_tag, _handleSingleTapUp');
-    _renderEditable.selectWord(cause: SelectionChangedCause.tap);
+    if (onTap == null) {
+      _renderEditable.selectWord(cause: SelectionChangedCause.tap);
+    }
 
     switch (Theme.of(context).platform) {
       case TargetPlatform.iOS:
-        if (iosTextSelectionControls != null &&
+        if (onTap == null && iosTextSelectionControls != null &&
             iosTextSelectionControls is CupertinoMarkTextSelectionControls) {
           (iosTextSelectionControls as CupertinoMarkTextSelectionControls)
               .translateBuildView(_editableTextKey?.currentState?.textEditingValue);
@@ -96,7 +98,7 @@ class SelectableText extends StatelessWidget {
         break;
       case TargetPlatform.android:
       case TargetPlatform.fuchsia:
-        if (androidTextSelectionControls != null &&
+        if (onTap == null && androidTextSelectionControls != null &&
             androidTextSelectionControls is MaterialMarkTextSelectionControls) {
           (androidTextSelectionControls as MaterialMarkTextSelectionControls)
               .translateBuildView(_editableTextKey?.currentState?.textEditingValue);
