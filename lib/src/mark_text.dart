@@ -1,7 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_selectext/src/selectable_text.dart';
+import 'package:flutter_selectext/src/selectable_text.dart' as selectableText;
 import 'package:flutter_selectext/src/text_selection_controls/cupertino_mark_text_selection_controls.dart';
 import 'package:flutter_selectext/src/text_selection_controls/handle_mark.dart';
 import 'package:flutter_selectext/src/text_selection_controls/material_mark_text_selection_controls.dart';
@@ -83,7 +83,7 @@ class MarkText extends StatelessWidget {
       textSpan = TextSpan(style: style, text: text);
     }
 
-    return SelectableText.rich(
+    return selectableText.SelectableText.rich(
       textSpan,
       style: style,
       textAlign: textAlign,
