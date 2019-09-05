@@ -56,6 +56,7 @@ class _TextSelectionToolbarState extends State<_TextSelectionToolbar> {
           child: Text(widget.markString),
           onPressed: () {
             widget.translateBuildView(widget.delegate.textEditingValue);
+            widget.delegate.hideToolbar();
           }));
     }
 
