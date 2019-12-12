@@ -476,6 +476,8 @@ class SelectableTextEditableTextState extends State<SelectableTextEditableText>
 
   // State lifecycle:
 
+  void connectionClosed() {}
+
   @override
   void initState() {
     super.initState();
