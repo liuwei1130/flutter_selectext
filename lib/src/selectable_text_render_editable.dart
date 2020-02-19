@@ -1216,7 +1216,7 @@ class SelectableTextRender extends RenderBox {
     _layoutText(constraints.maxWidth);
     if (onSelectionChanged != null) {
       final TextPosition firstPosition =
-          _textPainter.getPositionForOffset(globalToLocal(from - _paintOffset));
+          _textPainter.getPositionForOffset(globalToLocal(from - _paintOffset?? Offset(0, 0)));
       final TextSelection firstWord = _selectWordAtOffset(firstPosition);
       final TextSelection lastWord = to == null
           ? firstWord
