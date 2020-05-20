@@ -1160,4 +1160,7 @@ class SelectableTextEditableTextState extends State<SelectableTextEditableText>
 
   @override
   bool get selectAllEnabled => true;
+
+  @override
+  TextEditingValue get currentTextEditingValue => _value;
 }
